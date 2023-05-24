@@ -1,10 +1,10 @@
 from flask import Flask, request, send_file
 from PIL import Image, ImageDraw, ImageFont
 from bs4 import BeautifulSoup as bs
-import requests, json, datetime, re, io, base64
+import requests, json, datetime, re, io, base64, os
 
 app = Flask(__name__)
-sKey = 'Lord2333'
+sKey = ''
 
 
 @app.route('/', methods=['GET', 'POST'])
@@ -28,14 +28,26 @@ def main():
 				except Exception as e:
 					return "缺少字段"+str(e)
 			else:
-				return send_file(render_pic(get_web()), mimetype='image/png')
+				today = datetime.datetime.now().strftime('%m%d')
+				st = os.stat('Today.png').st_mtime
+				File = datetime.datetime.fromtimestamp(int(st)).strftime('%m%d')
+				if today == File:
+					return send_file('./Today.png')
+				else:
+					return send_file(render_pic(get_web()), mimetype='image/png')
 	else:
 		if request.method == 'POST':
 			data = json.loads(request.get_data())
 			day = data['day']
 			return data
 		else:
-			return send_file(render_pic(get_web()), mimetype='image/png')
+			today = datetime.datetime.now().strftime('%m%d')
+			st = os.stat('Today.png').st_mtime
+			File = datetime.datetime.fromtimestamp(int(st)).strftime('%m%d')
+			if today == File:
+				return send_file('./Today.png', mimetype='image/png')
+			else:
+				return send_file(render_pic(get_web()), mimetype='image/png')
 
 
 headers = {
@@ -102,6 +114,7 @@ def render_pic(Data: list, Base64: bool = False):
 	draw.multiline_text((X+128+10, Y+20), 'API By\nGithub@Lord2333', font=Font, fill=(0, 0, 0), align='center')
 	temp = io.BytesIO()
 	img_event.save(temp, format='png')
+	img_event.save('Today.png', 'png')
 	temp.seek(0)
 	if Base64:
 		base64_str = base64.b64encode(temp.getvalue()).decode('utf-8')
@@ -150,3 +163,7 @@ def simplify_data(Data: list) -> list:
 		Event.append(year + '年：' + tittle + '\n' + desc)
 	# print(Event)
 	return Event
+
+
+if __name__ == "__main__":
+	app.run()
