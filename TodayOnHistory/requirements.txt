@@ -1,0 +1,4 @@
+flask
+pillow
+bs4
+requests
